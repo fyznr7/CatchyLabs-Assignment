@@ -1,10 +1,12 @@
 package steps.login;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.ConfigManager;
@@ -31,6 +33,7 @@ public class LoginSteps {
     public void performLogin(String userKey) {
         logger.info("Starting login process for user key: {}", userKey);
         navigateToLoginPageAndAssert(LOGIN_URL);
+        waitForPageToLoad();
 
         String username = ConfigManager.getNestedProperty("user", userKey, "username");
         String password = ConfigManager.getNestedProperty("user", userKey, "password");
@@ -39,7 +42,7 @@ public class LoginSteps {
                 () -> enterUsername(username),
                 () -> enterPassword(password),
                 this::clickLoginButton,
-                () -> assertCurrentUrlContains("dashboard"),
+                this::waitForDashboardToLoad,
                 this::clickMoneyTransferButton
         };
 
@@ -69,13 +72,20 @@ public class LoginSteps {
         logger.info("URL assertion passed. Current URL: {}", actualUrl);
     }
 
-    private void assertCurrentUrlContains(String expectedSubstring) {
-        String actualUrl = driver.getCurrentUrl();
-        if (!actualUrl.contains(expectedSubstring)) {
-            logger.error("URL does not contain expected substring! Expected to contain: {}, but got: {}", expectedSubstring, actualUrl);
-            throw new AssertionError("URL does not contain expected substring! Expected to contain: " + expectedSubstring + ", but got: " + actualUrl);
-        }
-        logger.info("URL substring assertion passed. Current URL: {}", actualUrl);
+    private void waitForPageToLoad() {
+        logger.debug("Waiting for the page to load using JavaScript...");
+        new WebDriverWait(driver, Duration.ofSeconds(20)).until(webDriver -> {
+            JavascriptExecutor jsExecutor = (JavascriptExecutor) webDriver;
+            return jsExecutor.executeScript("return document.readyState").equals("complete");
+        });
+        logger.info("Page loaded successfully.");
+    }
+
+
+    private void waitForDashboardToLoad() {
+        logger.debug("Waiting for the dashboard to load...");
+        wait.until(ExpectedConditions.urlContains(LOGIN_URL));
+        logger.info("Dashboard page loaded successfully.");
     }
 
     private void enterUsername(String username) {

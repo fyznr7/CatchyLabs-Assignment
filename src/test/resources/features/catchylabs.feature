@@ -22,3 +22,7 @@ Feature: ATM Scenarios
     And User adds money using card "default" with amount "100"
     And User transfers "50" from "Main Account->Testinium-2"
     Then User logs out
+
+  Scenario: Negative balance control
+    And User transfers "balance" from "Main Account->Testinium-2"
+    Then User logs out

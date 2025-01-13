@@ -38,22 +38,24 @@ public class TransferMoneySteps {
 
         double initialTotal = getTotalAmount();
 
-        logger.info("Starting transfer of {} from {} to {}", amount, senderAccount, receiverAccount);
+        final String transferAmount = amount.equalsIgnoreCase("balance") ? String.valueOf(initialTotal) : amount;
+
+        logger.info("Starting transfer of {} from {} to {}", transferAmount, senderAccount, receiverAccount);
 
         List<Runnable> steps = List.of(
                 this::clickTransferMoneyButton,
                 () -> selectSenderAccount(senderAccount),
                 () -> selectReceiverAccount(receiverAccount),
-                () -> enterAmount(amount),
+                () -> enterAmount(transferAmount),
                 this::clickSendButton
         );
 
         steps.forEach(Runnable::run);
 
-        logger.info("Successfully transferred {} from {} to {}", amount, senderAccount, receiverAccount);
+        logger.info("Successfully transferred {} from {} to {}", transferAmount, senderAccount, receiverAccount);
 
-        assertTransferredAmount(amount);
-        assertTotalAmount(initialTotal, Double.parseDouble(amount));
+        assertTransferredAmount(transferAmount);
+        assertTotalAmount(initialTotal, Double.parseDouble(transferAmount));
     }
 
     public void clickTransferMoneyButton() {
@@ -109,6 +111,10 @@ public class TransferMoneySteps {
     private double getTotalAmount() {
         String totalText = wait.until(ExpectedConditions.visibilityOfElementLocated(TOTAL_AMOUNT)).getText();
         logger.debug("Retrieved total amount text: {}", totalText);
-        return Double.parseDouble(totalText);
+        double totalAmount = Double.parseDouble(totalText);
+        if (totalAmount < 0) {
+            throw new AssertionError("Total amount is negative: " + totalAmount);
+        }
+        return totalAmount;
     }
 }

@@ -14,7 +14,7 @@ import org.junit.runner.RunWith;
                 "junit:target/cucumber-reports.xml"
         },
         features = "classpath:features",
-        glue = {"stepdefinitions"},
+        glue = {"stepdefinitions", "runners"},
         publish = true
 )
 public class TestRunner {
