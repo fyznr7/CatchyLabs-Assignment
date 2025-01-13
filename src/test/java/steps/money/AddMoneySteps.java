@@ -5,16 +5,19 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utils.ConfigManager;
 
 import java.time.Duration;
+import java.util.function.Consumer;
 
 public class AddMoneySteps {
 
-    private WebDriver driver;
-    private WebDriverWait wait;
+    private final WebDriver driver;
+    private final WebDriverWait wait;
+    private static final Logger logger = LoggerFactory.getLogger(AddMoneySteps.class);
 
-    // Element locators
     private static final By ADD_MONEY_BUTTON = By.xpath("//div[text()='Add money']//parent::div");
     private static final By CARD_NUMBER_FIELD = By.xpath("//div[text()='Card number']//parent::div//input");
     private static final By CARD_HOLDER_FIELD = By.xpath("//div[text()='Card holder']//parent::div//input");
@@ -23,76 +26,121 @@ public class AddMoneySteps {
     private static final By AMOUNT_FIELD = By.xpath("//div[text()='Amount']//parent::div//input");
     private static final By ADD_BUTTON = By.xpath("//div[text()='Add']//parent::div");
     private static final By CONFIRM_BUTTON = By.xpath("//div[@class='css-146c3p1 r-lrvibr r-1loqt21']");
+    private static final By TOTAL_AMOUNT = By.xpath("//div[text()='Amount']/following-sibling::div/div");
 
-    // Constructor
+    public enum CardDetails {
+        CARD_NUMBER("number"),
+        CARD_HOLDER("holder"),
+        EXPIRY_DATE("expireDate"),
+        CVV("cvv");
+
+        private final String key;
+
+        CardDetails(String key) {
+            this.key = key;
+        }
+
+        public String getKey() {
+            return key;
+        }
+    }
+
     public AddMoneySteps(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
     }
 
-    /**
-     * Perform add money operation using a card.
-     * @param cardKey The card key to fetch card details from ConfigManager
-     * @param amount The amount to add
-     */
     public void performAddMoney(String cardKey, String amount) {
-        // Retrieve card details from configuration
-        String cardNumber = ConfigManager.getNestedProperty("card", cardKey, "number");
-        String cardHolder = ConfigManager.getNestedProperty("card", cardKey, "holder");
-        String expireDate = ConfigManager.getNestedProperty("card", cardKey, "expireDate");
-        String cvv = ConfigManager.getNestedProperty("card", cardKey, "cvv");
+        logger.info("Starting add money process for card: {} with amount: {}", cardKey, amount);
 
-        // Perform add money steps
-        clickAddMoneyButton();
-        enterCardDetails(cardNumber, cardHolder, expireDate, cvv);
-        enterAmount(amount);
-        clickAddButton();
-        clickConfirmButton();
+        double initialTotal = getTotalAmount();
+        logger.debug("Initial total amount: {}", initialTotal);
 
-        System.out.println("Money added using card: " + cardKey + ", amount: " + amount);
+        executeSteps(
+                this::clickAddMoneyButton,
+                () -> enterCardDetails(cardKey),
+                () -> enterAmount(amount),
+                this::clickAddButton,
+                this::clickConfirmButton
+        );
+
+        double finalTotal = getTotalAmount();
+        validateTransaction(cardKey, initialTotal, finalTotal, amount);
+
+        logger.info("Final total amount after operation: {}", finalTotal);
     }
 
-    // Click "Add Money" button
-    public void clickAddMoneyButton() {
-        WebElement addMoneyButton = wait.until(ExpectedConditions.elementToBeClickable(ADD_MONEY_BUTTON));
-        addMoneyButton.click();
+    private void validateTransaction(String cardKey, double initialTotal, double finalTotal, String amount) {
+        if (cardKey.equals("invalidCard")) {
+            logger.debug("Invalid card detected: {}. Expecting no change in total amount.", cardKey);
+            assertTotalAmount(initialTotal, finalTotal);
+        } else {
+            double expectedTotal = initialTotal + Double.parseDouble(amount);
+            logger.debug("Valid card used. Expecting updated total amount: {}", expectedTotal);
+            assertTotalAmount(expectedTotal, finalTotal);
+        }
     }
 
-    // Enter card details
-    public void enterCardDetails(String cardNumber, String cardHolder, String expireDate, String cvv) {
-        WebElement cardNumberField = wait.until(ExpectedConditions.visibilityOfElementLocated(CARD_NUMBER_FIELD));
-        cardNumberField.clear();
-        cardNumberField.sendKeys(cardNumber);
-
-        WebElement cardHolderField = wait.until(ExpectedConditions.visibilityOfElementLocated(CARD_HOLDER_FIELD));
-        cardHolderField.clear();
-        cardHolderField.sendKeys(cardHolder);
-
-        WebElement expiryDateField = wait.until(ExpectedConditions.visibilityOfElementLocated(EXPIRY_DATE_FIELD));
-        expiryDateField.clear();
-        expiryDateField.sendKeys(expireDate);
-
-        WebElement cvvField = wait.until(ExpectedConditions.visibilityOfElementLocated(CVV_FIELD));
-        cvvField.clear();
-        cvvField.sendKeys(cvv);
+    private void executeSteps(Runnable... steps) {
+        for (Runnable step : steps) {
+            step.run();
+        }
     }
 
-    // Enter amount
-    public void enterAmount(String amount) {
-        WebElement amountField = wait.until(ExpectedConditions.visibilityOfElementLocated(AMOUNT_FIELD));
-        amountField.clear();
-        amountField.sendKeys(amount);
+    private double getTotalAmount() {
+        String totalText = wait.until(ExpectedConditions.visibilityOfElementLocated(TOTAL_AMOUNT)).getText();
+        logger.debug("Retrieved total amount text: {}", totalText);
+        return Double.parseDouble(totalText);
     }
 
-    // Click "Add" button
-    public void clickAddButton() {
-        WebElement addButton = wait.until(ExpectedConditions.elementToBeClickable(ADD_BUTTON));
-        addButton.click();
+    private void assertTotalAmount(double expected, double actual) {
+        if (Double.compare(expected, actual) != 0) {
+            throw new AssertionError("Total amount mismatch! Expected: " + expected + ", but got: " + actual);
+        }
+        logger.info("Total amount assertion passed. Expected: {}, Actual: {}", expected, actual);
     }
 
-    // Click confirm button
-    public void clickConfirmButton() {
-        WebElement confirmButton = wait.until(ExpectedConditions.elementToBeClickable(CONFIRM_BUTTON));
-        confirmButton.click();
+    private void enterCardDetails(String cardKey) {
+        for (CardDetails detail : CardDetails.values()) {
+            String value = ConfigManager.getNestedProperty("card", cardKey, detail.getKey());
+            enterField(getFieldLocator(detail), value);
+        }
+    }
+
+    private By getFieldLocator(CardDetails detail) {
+        return switch (detail) {
+            case CARD_NUMBER -> CARD_NUMBER_FIELD;
+            case CARD_HOLDER -> CARD_HOLDER_FIELD;
+            case EXPIRY_DATE -> EXPIRY_DATE_FIELD;
+            case CVV -> CVV_FIELD;
+        };
+    }
+
+    private void clickAddMoneyButton() {
+        performAction(ADD_MONEY_BUTTON, WebElement::click);
+    }
+
+    private void enterAmount(String amount) {
+        enterField(AMOUNT_FIELD, amount);
+    }
+
+    private void clickAddButton() {
+        performAction(ADD_BUTTON, WebElement::click);
+    }
+
+    private void clickConfirmButton() {
+        performAction(CONFIRM_BUTTON, WebElement::click);
+    }
+
+    private void enterField(By locator, String value) {
+        performAction(locator, field -> {
+            field.clear();
+            field.sendKeys(value);
+        });
+    }
+
+    private void performAction(By locator, Consumer<WebElement> action) {
+        WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        action.accept(element);
     }
 }
