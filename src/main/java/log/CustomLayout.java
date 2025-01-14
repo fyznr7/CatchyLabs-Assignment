@@ -15,11 +15,11 @@ import java.time.format.DateTimeFormatter;
 public class CustomLayout extends AbstractStringLayout {
 
     public enum LogLevelColor {
-        ERROR("\u001B[91m"),
-        WARN("\u001B[93m"),
-        INFO("\u001B[92m"),
-        DEBUG("\u001B[96m"),
-        TRACE("\u001B[94m"),
+        ERROR("\u001B[31;1m"),
+        WARN("\u001B[33;1m"),
+        INFO("\u001B[32;1m"),
+        DEBUG("\u001B[36;1m"),
+        TRACE("\u001B[35;1m"),
         DEFAULT("\u001B[0m");
 
         private final String colorCode;
@@ -53,17 +53,35 @@ public class CustomLayout extends AbstractStringLayout {
         String level = event.getLevel().toString();
         String message = event.getMessage().getFormattedMessage();
         String color = LogLevelColor.getColorForLevel(level);
-        String prefix = getPrefix(level);
-        return String.format("%s%s[%s] %s: %s%n%s", prefix, color, timestamp, level, message, LogLevelColor.DEFAULT.getColorCode());
+        String sourceInfo = getSourceInfo(event);
+        String prefix = getDynamicPrefix(level, sourceInfo);
+
+        return String.format(
+                "%s%s[%s] %s %s: %s%n%s",
+                prefix, color, timestamp, sourceInfo, level, message, LogLevelColor.DEFAULT.getColorCode()
+        );
     }
 
-    private String getPrefix(String level) {
+    private String getSourceInfo(LogEvent event) {
+        if (event.getSource() != null) {
+            String className = event.getSource().getClassName();
+            String methodName = event.getSource().getMethodName();
+            int lineNumber = event.getSource().getLineNumber();
+            return String.format("%s.%s(%s.java:%d)", className, methodName, className.substring(className.lastIndexOf('.') + 1), lineNumber);
+        } else {
+            return "UnknownSource";
+        }
+    }
+
+    private String getDynamicPrefix(String level, String sourceInfo) {
+        int totalLength = sourceInfo.length() + 30;
         StringBuilder builder = new StringBuilder();
         String color = LogLevelColor.getColorForLevel(level);
-        for (int i = 0; i < Thread.currentThread().getStackTrace().length - 1; i++) {
-            builder.append(color).append("━").append(LogLevelColor.DEFAULT.getColorCode());
+        builder.append(color);
+        for (int i = 0; i < totalLength; i++) {
+            builder.append("━");
         }
-        builder.append(System.lineSeparator());
+        builder.append(LogLevelColor.DEFAULT.getColorCode()).append(System.lineSeparator());
         return builder.toString();
     }
 
