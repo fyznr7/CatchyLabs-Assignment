@@ -1,23 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN">
+<Configuration>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout>
-                <pattern>%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n</pattern>
-            </PatternLayout>
+            <CustomLayout />
         </Console>
-
-        <!-- File Appender with Custom Layout -->
-        <File name="File" fileName="logs/app.log" append="true">
-            <CustomLayout type="CustomLayout" />
-        </File>
     </Appenders>
-
     <Loggers>
-        <!-- Root Logger -->
-        <Root level="info">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="File"/>
+        <Root level="debug">
+            <AppenderRef ref="Console" />
         </Root>
     </Loggers>
 </Configuration>

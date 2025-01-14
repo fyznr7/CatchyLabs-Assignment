@@ -6,16 +6,16 @@ import org.junit.runner.RunWith;
 
 @RunWith(Cucumber.class)
 @CucumberOptions(
-        tags = "",
         plugin = {
                 "pretty",
                 "html:target/cucumber-reports.html",
                 "json:target/cucumber-reports.json",
-                "junit:target/cucumber-reports.xml"
+                "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm"
         },
         features = "classpath:features",
         glue = {"stepdefinitions", "runners"},
-        publish = true
+        tags = "@web or @mweb"
 )
+
 public class TestRunner {
 }

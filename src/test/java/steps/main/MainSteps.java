@@ -10,8 +10,10 @@ import runners.Hooks;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class MainSteps {
+
     private static final Logger logger = LoggerFactory.getLogger(MainSteps.class);
 
     private static Map<String, Map<String, By>> locators;
@@ -21,45 +23,55 @@ public class MainSteps {
         logger.info("Locators initialized.");
     }
 
-    public static BiConsumer<String, String> navigateToUrl = (browser, url) -> {
-        WebDriver driver = Hooks.driver; // Access WebDriver from Hooks
-        if (driver == null) {
-            throw new IllegalStateException("WebDriver is not initialized. Please check Hooks class.");
-        }
-        driver.get(url);
-        logger.info("Navigated to URL: {}", url);
-    };
-
     public static BiConsumer<WebDriver, String[]> clickElement = (driver, params) -> {
-        By locator = getLocator(params[0], params[1]);
-        WebElement element = driver.findElement(locator);
-        element.click();
-        logger.info("Clicked element: {} on page: {}", params[0], params[1]);
+        try {
+            By locator = getLocator(params[0], params[1]);
+            WebElement element = driver.findElement(locator);
+            element.click();
+            logger.info("Clicked element '{}' on page '{}'.", params[0], params[1]);
+        } catch (Exception e) {
+            logger.error("Failed to click element '{}' on page '{}'.", params[0], params[1], e);
+            throw e;
+        }
     };
 
     public static TriConsumer<WebDriver, String[], String> sendKeysToElement = (driver, params, keys) -> {
-        By locator = getLocator(params[0], params[1]);
-        WebElement element = driver.findElement(locator);
-        element.clear();
-        element.sendKeys(keys);
-        logger.info("Sent keys to element: {} on page: {} with value: {}", params[0], params[1], keys);
+        try {
+            By locator = getLocator(params[0], params[1]);
+            WebElement element = driver.findElement(locator);
+            element.clear();
+            element.sendKeys(keys);
+            logger.info("Sent keys '{}' to element '{}' on page '{}'.", keys, params[0], params[1]);
+        } catch (Exception e) {
+            logger.error("Failed to send keys '{}' to element '{}' on page '{}'.", keys, params[0], params[1], e);
+            throw e;
+        }
     };
 
     public static TriConsumer<WebDriver, String[], String> selectDropdownByText = (driver, params, visibleText) -> {
-        By locator = getLocator(params[0], params[1]);
-        Select dropdown = new Select(driver.findElement(locator));
-        dropdown.selectByVisibleText(visibleText);
-        logger.info("Selected dropdown option: {} from element: {} on page: {}", visibleText, params[0], params[1]);
+        try {
+            By locator = getLocator(params[0], params[1]);
+            Select dropdown = new Select(driver.findElement(locator));
+            dropdown.selectByVisibleText(visibleText);
+            logger.info("Selected '{}' from dropdown '{}' on page '{}'.", visibleText, params[0], params[1]);
+        } catch (Exception e) {
+            logger.error("Failed to select '{}' from dropdown '{}' on page '{}'.", visibleText, params[0], params[1], e);
+            throw e;
+        }
     };
 
     public static BiConsumer<WebDriver, String[]> verifyElementIsDisplayed = (driver, params) -> {
-        By locator = getLocator(params[0], params[1]);
-        WebElement element = driver.findElement(locator);
-        if (element.isDisplayed()) {
-            logger.info("Element is displayed: {} on page: {}", params[0], params[1]);
-        } else {
-            logger.error("Element is not displayed: {} on page: {}", params[0], params[1]);
-            throw new AssertionError("Element is not displayed: " + params[0]);
+        try {
+            By locator = getLocator(params[0], params[1]);
+            WebElement element = driver.findElement(locator);
+            if (element.isDisplayed()) {
+                logger.info("Element '{}' is displayed on page '{}'.", params[0], params[1]);
+            } else {
+                throw new AssertionError("Element '" + params[0] + "' is not displayed on page '" + params[1] + "'.");
+            }
+        } catch (Exception e) {
+            logger.error("Failed to verify element '{}' on page '{}'.", params[0], params[1], e);
+            throw e;
         }
     };
 
