@@ -19,17 +19,6 @@ public class DriverManager {
     private static final Logger logger = LoggerFactory.getLogger(DriverManager.class);
     private static WebDriver driver;
 
-    public enum Browser {
-        CHROME,
-        FIREFOX,
-        EDGE,
-        SAFARI,
-        MWEB_CHROME,
-        MWEB_FIREFOX,
-        MWEB_EDGE,
-        MWEB_SAFARI
-    }
-
     public static WebDriver getDriver(String browser, boolean isMobile, String deviceName, int width, int height) {
         if (driver != null) {
             logger.info("Reusing existing WebDriver instance.");
@@ -63,8 +52,10 @@ public class DriverManager {
                     chromeOptions.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
                     driver = new ChromeDriver(chromeOptions);
                 }
-                case FIREFOX -> driver = new FirefoxDriver(new FirefoxOptions().addArguments("-private").addPreference("dom.webnotifications.enabled", false));
-                case EDGE -> driver = new EdgeDriver(new EdgeOptions().addArguments("--start-maximized", "--disable-popup-blocking"));
+                case FIREFOX ->
+                        driver = new FirefoxDriver(new FirefoxOptions().addArguments("-private").addPreference("dom.webnotifications.enabled", false));
+                case EDGE ->
+                        driver = new EdgeDriver(new EdgeOptions().addArguments("--start-maximized", "--disable-popup-blocking"));
                 case SAFARI -> {
                     if (System.getProperty("os.name").toLowerCase().contains("mac")) {
                         driver = new SafariDriver(new SafariOptions());
@@ -147,5 +138,16 @@ public class DriverManager {
         } else {
             logger.warn("No WebDriver instance to quit.");
         }
+    }
+
+    public enum Browser {
+        CHROME,
+        FIREFOX,
+        EDGE,
+        SAFARI,
+        MWEB_CHROME,
+        MWEB_FIREFOX,
+        MWEB_EDGE,
+        MWEB_SAFARI
     }
 }

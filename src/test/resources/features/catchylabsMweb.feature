@@ -3,8 +3,8 @@ Feature: ATM MWEB Scenarios
 
   Background:
     Given Setup Driver
-      | Browser      | DeviceName | Dimensions |
-      | MWEB_CHROME  | Pixel 2    | 400x800    |
+      | Browser     | DeviceName | Dimensions |
+      | MWEB_CHROME | Pixel 2    | 400x800    |
     When Login process with user "testUser"
 
   @mweb @login

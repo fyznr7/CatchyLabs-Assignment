@@ -3,8 +3,8 @@ Feature: ATM Scenarios
 
   Background:
     Given Setup Driver
-      | Browser      |
-      | CHROME       |
+      | Browser |
+      | CHROME  |
     When Login process with user "testUser"
 
   @web @login

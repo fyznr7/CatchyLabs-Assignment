@@ -14,7 +14,7 @@ import org.junit.runner.RunWith;
         },
         features = "classpath:features",
         glue = {"stepdefinitions", "runners"},
-        tags = "@web or @mweb"
+        tags = "@web and @login"
 )
 
 public class TestRunner {

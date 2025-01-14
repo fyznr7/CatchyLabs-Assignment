@@ -11,25 +11,17 @@ public class LogoutDefinitions {
 
     private static final Logger logger = LogManager.getLogger(LogoutDefinitions.class);
 
-    private final WebDriver driver;
+    private final LogoutSteps logoutSteps;
 
     public LogoutDefinitions() {
-        this.driver = Hooks.getDriver();
+        WebDriver driver = Hooks.getDriver();
         if (driver == null) {
             logger.error("WebDriver is not initialized. Ensure the Hooks class is correctly set up.");
             throw new IllegalStateException("WebDriver is not initialized. Ensure the Hooks class is correctly set up.");
         }
+        this.logoutSteps = new LogoutSteps();
+        logger.info("LogoutSteps instance successfully created.");
     }
 
-    @Then("User logs out")
-    public void user_logs_out() {
-        logger.info("Starting logout process.");
-        try {
-            LogoutSteps.performLogout();
-            logger.info("Logout process completed successfully.");
-        } catch (Exception e) {
-            logger.error("An error occurred during the logout process.", e);
-            throw e;
-        }
-    }
+
 }

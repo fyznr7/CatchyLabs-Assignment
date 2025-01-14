@@ -14,35 +14,13 @@ import java.time.format.DateTimeFormatter;
 @Plugin(name = "CustomLayout", category = "Core", elementType = Layout.ELEMENT_TYPE, printObject = true)
 public class CustomLayout extends AbstractStringLayout {
 
-    public enum LogLevelColor {
-        ERROR("\u001B[31;1m"),
-        WARN("\u001B[33;1m"),
-        INFO("\u001B[32;1m"),
-        DEBUG("\u001B[36;1m"),
-        TRACE("\u001B[35;1m"),
-        DEFAULT("\u001B[0m");
-
-        private final String colorCode;
-
-        LogLevelColor(String colorCode) {
-            this.colorCode = colorCode;
-        }
-
-        public String getColorCode() {
-            return colorCode;
-        }
-
-        public static String getColorForLevel(String level) {
-            try {
-                return LogLevelColor.valueOf(level.toUpperCase()).getColorCode();
-            } catch (IllegalArgumentException e) {
-                return DEFAULT.getColorCode();
-            }
-        }
-    }
-
     protected CustomLayout(Charset charset) {
         super(charset);
+    }
+
+    @PluginFactory
+    public static CustomLayout createLayout() {
+        return new CustomLayout(Charset.defaultCharset());
     }
 
     @Override
@@ -85,8 +63,30 @@ public class CustomLayout extends AbstractStringLayout {
         return builder.toString();
     }
 
-    @PluginFactory
-    public static CustomLayout createLayout() {
-        return new CustomLayout(Charset.defaultCharset());
+    public enum LogLevelColor {
+        ERROR("\u001B[31;1m"),
+        WARN("\u001B[33;1m"),
+        INFO("\u001B[32;1m"),
+        DEBUG("\u001B[36;1m"),
+        TRACE("\u001B[35;1m"),
+        DEFAULT("\u001B[0m");
+
+        private final String colorCode;
+
+        LogLevelColor(String colorCode) {
+            this.colorCode = colorCode;
+        }
+
+        public static String getColorForLevel(String level) {
+            try {
+                return LogLevelColor.valueOf(level.toUpperCase()).getColorCode();
+            } catch (IllegalArgumentException e) {
+                return DEFAULT.getColorCode();
+            }
+        }
+
+        public String getColorCode() {
+            return colorCode;
+        }
     }
 }

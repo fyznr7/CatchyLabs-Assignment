@@ -1,6 +1,7 @@
 package stepdefinitions.login;
 
 import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebDriver;
@@ -20,7 +21,7 @@ public class LoginStepDefinitions {
             logger.error("WebDriver is not initialized. Ensure the Hooks class is correctly set up.");
             throw new IllegalStateException("WebDriver is not initialized. Ensure the Hooks class is correctly set up.");
         }
-        this.loginSteps = new LoginSteps(driver);
+        this.loginSteps = new LoginSteps();
     }
 
     @Given("Login process with user {string}")
@@ -32,6 +33,18 @@ public class LoginStepDefinitions {
         } catch (Exception e) {
             logger.error("An error occurred during the login process for user: {}", userKey, e);
             throw e;
+        }
+    }
+
+    @Then("User logs out")
+    public void user_logs_out() {
+        logger.info("Starting logout process.");
+        try {
+            loginSteps.performLogout();
+            logger.info("Logout process completed successfully.");
+        } catch (Exception e) {
+            logger.error("An error occurred during the logout process.", e);
+            throw new AssertionError("Logout process failed.", e);
         }
     }
 }

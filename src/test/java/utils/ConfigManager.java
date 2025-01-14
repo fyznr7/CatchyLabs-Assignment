@@ -10,9 +10,8 @@ import java.util.Properties;
 
 public class ConfigManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConfigManager.class);
-
     public static final String CONFIG_FILE_PATH = "src/test/resources/config.properties";
+    private static final Logger logger = LoggerFactory.getLogger(ConfigManager.class);
     public static Properties properties = new Properties();
 
     static {

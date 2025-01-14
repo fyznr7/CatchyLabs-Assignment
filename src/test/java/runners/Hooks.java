@@ -17,30 +17,8 @@ import java.time.format.DateTimeFormatter;
 public class Hooks {
     private static WebDriver driver;
 
-    public void setBrowserAndInitialize(String browser, boolean isMobile, String deviceName, String dimensions) {
-        if (browser == null || browser.isEmpty()) {
-            browser = DriverManager.Browser.CHROME.name();
-        }
-
-        if (isMobile) {
-            String[] dimensionParts = dimensions.split("x");
-            int width = Integer.parseInt(dimensionParts[0]);
-            int height = Integer.parseInt(dimensionParts[1]);
-            driver = DriverManager.getDriver(browser, true, deviceName, width, height);
-        } else {
-            driver = DriverManager.getDriver(browser, false, null, 0, 0);
-        }
-    }
-
     public static WebDriver getDriver() {
         return driver;
-    }
-
-    @After
-    public void tearDown() {
-        if (driver != null) {
-            DriverManager.quitDriver();
-        }
     }
 
     public static void captureScreenshot(String stepTiming, Scenario scenario) {
@@ -59,6 +37,28 @@ public class Hooks {
             Files.copy(srcFile.toPath(), Paths.get(screenshotName));
         } catch (IOException e) {
             System.err.println("Failed to capture and save screenshot: " + e.getMessage());
+        }
+    }
+
+    public void setBrowserAndInitialize(String browser, boolean isMobile, String deviceName, String dimensions) {
+        if (browser == null || browser.isEmpty()) {
+            browser = DriverManager.Browser.CHROME.name();
+        }
+
+        if (isMobile) {
+            String[] dimensionParts = dimensions.split("x");
+            int width = Integer.parseInt(dimensionParts[0]);
+            int height = Integer.parseInt(dimensionParts[1]);
+            driver = DriverManager.getDriver(browser, true, deviceName, width, height);
+        } else {
+            driver = DriverManager.getDriver(browser, false, null, 0, 0);
+        }
+    }
+
+    @After
+    public void tearDown() {
+        if (driver != null) {
+            DriverManager.quitDriver();
         }
     }
 }
