@@ -3,7 +3,6 @@ package steps.login;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pages.login.LoginPage;
-import pages.login.LogoutPage;
 import runners.Hooks;
 import steps.main.MainSteps;
 import utils.ConfigManager;
@@ -74,8 +73,8 @@ public class LoginSteps extends MainSteps {
     }
 
     private void logout() {
-        clickElement(LogoutPage.BACK_BUTTON);
-        clickElement(LogoutPage.LOGOUT_BUTTON);
+        clickElement(LoginPage.LogoutPage.BACK_BUTTON);
+        clickElement(LoginPage.LogoutPage.LOGOUT_BUTTON);
     }
 
     private void verifyLogoutSuccess() {

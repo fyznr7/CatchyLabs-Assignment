@@ -3,7 +3,7 @@ package pages.money;
 import org.openqa.selenium.By;
 
 public class AddMoneyPage {
-    public static final String pageName = "AddMoneyPage";
+    public static final String PAGE_NAME = "AddMoneyPage";
 
     public static final By ADD_MONEY_BUTTON = By.xpath("//div[text()='Add money']//parent::div");
     public static final By CARD_NUMBER_FIELD = By.xpath("//div[text()='Card number']//parent::div//input");
